@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B0F19;
+  --card:#131929;
+  --card2:#1a2438;
+  --border:#1f2d47;
+  --accent:#00E5A0;
+  --accent2:#4B8FFF;
+  --accent3:#F5A623;
+  --text:#F0F4FF;
+  --muted:#8899BB;
+  --dim:#374765;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;padding:0}
+.wrap{max-width:960px;margin:0 auto;padding:24px 20px 40px}
+
+/* Header */
+.header{margin-bottom:28px}
+.header-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
+.header-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;line-height:1.1;color:var(--text);margin-bottom:8px}
+.header-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:600px}
+
+/* KPI row */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.kpi-label{font-size:11px;color:var(--muted);letter-spacing:.04em;margin-bottom:6px}
+.kpi-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--text)}
+.kpi-val.up{color:var(--accent3)}
+.kpi-val.green{color:var(--accent)}
+.kpi-sub{font-size:11px;color:var(--dim);margin-top:4px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);padding:4px;border-radius:10px;border:1px solid var(--border);width:fit-content}
+.tab{background:none;border:none;color:var(--muted);padding:7px 18px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab.on{background:var(--card2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+
+/* Filters */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.fil{background:none;border:1px solid var(--dim);color:var(--muted);padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .13s;font-family:'DM Sans',sans-serif}
+.fil.on{border-color:var(--accent2);color:var(--accent2);background:rgba(75,143,255,.08)}
+.fil:hover:not(.on){border-color:var(--muted)}
+
+/* Legend */
+.legend{display:flex;gap:20px;font-size:12px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px}
+
+/* Chart area */
+.chart-wrap{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 16px 16px}
+.chart-inner{position:relative}
+
+/* View toggle */
+.view-toggle{display:flex;gap:4px;margin-bottom:16px;align-items:center}
+.vbtn{background:none;border:1px solid var(--dim);color:var(--muted);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .13s}
+.vbtn.on{background:rgba(0,229,160,.1);border-color:var(--accent);color:var(--accent)}
+.vbtn:hover:not(.on){border-color:var(--muted)}
+.view-label{font-size:12px;color:var(--dim);margin-right:8px}
+
+/* Esc section */
+.esc-wrap{display:none}
+.esc-head{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.esc-label{font-size:12px;color:var(--muted)}
+select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+
+/* Footer note */
+.fnote{font-size:11px;color:var(--dim);margin-top:16px;line-height:1.7;border-top:1px solid var(--border);padding-top:14px}
+
+@media(max-width:640px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .header-title{font-size:24px}
+  .tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Altus Group · Canadian Cost Guide · 2024 – 2026</div>
+    <div class="header-title">Vancouver Construction Costs</div>
+    <div class="header-sub">Hard construction cost ranges ($/sqft CAD) across 54 building types — private sector, public sector &amp; escalation trends. Averages calculated as midpoint of reported low–high range.</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Peak escalation year</div>
+      <div class="kpi-val up">2023</div>
+      <div class="kpi-sub">≈ 19.4% avg across types</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2025 avg escalation</div>
+      <div class="kpi-val up">+5.4%</div>
+      <div class="kpi-sub">High range, all sectors</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Highest 2026 avg cost</div>
+      <div class="kpi-val green">$1,275</div>
+      <div class="kpi-sub">General Hospital / sqft</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Building types tracked</div>
+      <div class="kpi-val" style="color:var(--accent2)">54</div>
+      <div class="kpi-sub">Across 3 sectors in YVR</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab on" onclick="doTab('residential',this)">Residential</button>
+    <button class="tab" onclick="doTab('commercial',this)">Commercial</button>
+    <button class="tab" onclick="doTab('public',this)">Public</button>
+    <button class="tab" onclick="doTab('escalation',this)">Escalation</button>
+  </div>
+
+  <!-- Filters row -->
+  <div class="filters" id="filRow"></div>
+
+  <!-- View toggle (bar vs line) -->
+  <div class="view-toggle" id="viewToggle">
+    <span class="view-label">View:</span>
+    <button class="vbtn on" onclick="setView('bar',this)">Comparison</button>
+    <button class="vbtn" onclick="setView('line',this)">Evolution 3yr</button>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend" id="lgd">
+    <span><span class="dot" style="background:#4B8FFF"></span>2024 avg</span>
+    <span><span class="dot" style="background:#F5A623"></span>2025 avg</span>
+    <span><span class="dot" style="background:#00E5A0"></span>2026 avg</span>
+    <span style="font-size:11px;color:var(--dim)">· Hover bars for low–high range</span>
+  </div>
+
+  <!-- Main chart -->
+  <div class="chart-wrap">
+    <div class="chart-inner" id="mainWrap">
+      <canvas id="mainChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Escalation section -->
+  <div class="esc-wrap" id="escWrap">
+    <div class="esc-head">
+      <span class="esc-label">Construction type:</span>
+      <select id="escSel" onchange="drawEsc()">
+        <option value="overall">Overall average — all types</option>
+        <option value="warehouse">Industrial warehouse</option>
+        <option value="concreteMF">Multifamily – concrete midrise</option>
+        <option value="woodframeMF">Multifamily – wood frame</option>
+        <option value="office">Commercial office (&lt;5 storeys)</option>
+        <option value="parking">Underground parking</option>
+        <option value="retail">Retail strip plaza</option>
+        <option value="storage">Storage facility</option>
+      </select>
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:#4B8FFF;border-radius:50%"></span>Low range Δ%</span>
+      <span><span class="dot" style="background:#F5373C;border-radius:50%"></span>High range Δ%</span>
+      <span><span class="dot" style="background:#00E5A0;border-radius:50%"></span>Average Δ%</span>
+    </div>
+    <div class="chart-wrap">
+      <div style="position:relative;height:280px">
+        <canvas id="escChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="fnote" id="fnote">
+    † 2025 values sourced directly from Altus Group Escalation Y-O-Y Charts 2025 (Vancouver bar chart) for: Industrial Warehouse, Multifamily Concrete, Multifamily Woodframe, Office, Parking (surface &amp; underground), Strip Plaza, Storage Facility, Townhouse. All remaining 2025 values are interpolated as the midpoint between 2024 and 2026 reported figures. All costs are hard construction costs only — excludes land, soft costs, GST/HST. Custom Built SFR (up to $1,250/sqft) excluded from charts to preserve scale. Source: Altus Group Canadian Cost Guide 2024 &amp; 2026; Escalation Y-O-Y Charts 2025.
+  </div>
+</div>
+
+<script>
+Chart.defaults.color = '#8899BB';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+// ─── DATA ────────────────────────────────────────────────────────────
+// Each item: {n, l24,h24, l25,h25, l26,h26}
+// 2025 values: direct from escalation PDF where available, else interpolated
+function interp(l24,h24,l26,h26){ return [Math.round((l24+l26)/2), Math.round((h24+h26)/2)]; }
+
+const D = {
+  residential:{
+    Condominiums:[
+      {n:'Condo ≤12 Storeys',     l24:325,h24:400, l25:328,h25:400, l26:330,h26:400},
+      {n:'Condo 13–39 Storeys',   l24:350,h24:440, l25:345,h25:438, l26:340,h26:435},
+      {n:'Condo 40–60 Storeys',   l24:360,h24:450, l25:355,h25:458, l26:350,h26:465},
+      {n:'Condo 60+ Storeys',     l24:370,h24:470, l25:370,h25:475, l26:370,h26:480},
+    ],
+    'Wood Frame':[
+      // 2025 townhouse from escalation doc: 225–315
+      {n:'Row Townhouse',          l24:185,h24:290, l25:225,h25:315, l26:195,h26:295},
+      // woodframe avg from escalation: 275–365
+      {n:'Single Family',          l24:190,h24:320, l25:195,h25:318, l26:200,h26:315},
+      {n:'3-Storey Stacked TH',   l24:220,h24:300, l25:215,h25:300, l26:210,h26:300},
+      {n:'6-Storey Wood Condo',   l24:250,h24:350, l25:253,h25:355, l26:255,h26:360},
+    ],
+    'Seniors Housing':[
+      {n:'Independent/Supportive', l24:290,h24:375, l25:310,h25:403, l26:330,h26:430},
+      {n:'Assisted Living',        l24:310,h24:420, l25:315,h25:438, l26:320,h26:455},
+      {n:'Complex Care',           l24:400,h24:600, l25:408,h25:608, l26:415,h26:615},
+    ],
+  },
+  commercial:{
+    Office:[
+      // office from escalation: 300–380 in 2025
+      {n:'Office <5 Storeys (B)',    l24:295,h24:380, l25:300,h25:380, l26:300,h26:380},
+      {n:'Office 5–30 Storeys (B)',  l24:295,h24:375, l25:298,h25:378, l26:300,h26:375},
+      {n:'Office 5–30 Storeys (A)',  l24:335,h24:420, l25:340,h25:423, l26:345,h26:425},
+      {n:'Office 31–60 Storeys (A)', l24:370,h24:460, l25:370,h25:460, l26:370,h26:460},
+      {n:'Fitout – Class B',         l24:85, h24:155, l25:88, h25:165, l26:90, h26:175},
+      {n:'Fitout – Class A',         l24:150,h24:280, l25:158,h25:288, l26:165,h26:295},
+    ],
+    Retail:[
+      // strip plaza from escalation: 210–300 in 2025
+      {n:'Strip Plaza',   l24:205,h24:280, l25:210,h25:300, l26:210,h26:300},
+      {n:'Supermarket',   l24:215,h24:270, l25:210,h25:265, l26:205,h26:260},
+      {n:'Big Box Store', l24:205,h24:270, l25:203,h25:260, l26:200,h26:250},
+      {n:'Enclosed Mall', l24:305,h24:415, l25:328,h25:438, l26:350,h26:460},
+    ],
+    Hotels:[
+      {n:'Budget Hotel',        l24:225,h24:295, l25:233,h25:308, l26:240,h26:320},
+      {n:'Suite Hotel',         l24:340,h24:410, l25:345,h25:435, l26:350,h26:460},
+      {n:'4-Star Full Service', l24:395,h24:560, l25:398,h25:565, l26:400,h26:570},
+    ],
+    Parking:[
+      // surface: 13–25 from escalation; underground: 170–290 from escalation
+      {n:'Surface Parking',        l24:12, h24:25,  l25:13, h25:25,  l26:13, h26:30},
+      {n:'Parking Garage (Above)', l24:120,h24:205, l25:125,h25:208, l26:130,h26:210},
+      {n:'Underground Parking',    l24:160,h24:250, l25:170,h25:290, l26:195,h26:300},
+    ],
+    Industrial:[
+      // warehouse from escalation: 125–210
+      {n:'Warehouse',             l24:115,h24:195, l25:125,h25:210, l26:120,h26:200},
+      {n:'Distribution Facility', l24:180,h24:465, l25:190,h25:475, l26:200,h26:485},
+      // storage from escalation: 120–175
+      {n:'Urban Storage',         l24:115,h24:165, l25:120,h25:175, l26:120,h26:175},
+    ],
+  },
+  public:{
+    Educational:[
+      {n:'Elementary School',    l24:425, h24:500,  l25:425, h25:550,  l26:425, h26:600},
+      {n:'Secondary School',     l24:445, h24:520,  l25:445, h25:565,  l26:445, h26:610},
+      {n:'University Teaching',  l24:750, h24:1100, l25:750, h25:1175, l26:750, h26:1250},
+      {n:'University Labs',      l24:925, h24:1250, l25:925, h25:1325, l26:925, h26:1400},
+      {n:'University Residence', l24:395, h24:500,  l25:395, h25:540,  l26:395, h26:580},
+    ],
+    Healthcare:[
+      {n:'General Hospital',  l24:1000,h24:1550,l25:1000,h25:1550,l26:1000,h26:1550},
+      {n:'Medical Clinic',    l24:500, h24:650, l25:525, h25:800, l26:550, h26:950},
+    ],
+    Transportation:[
+      {n:'Regional Airport',      l24:425,h24:530,  l25:428,h25:578,  l26:430,h26:625},
+      {n:'Intl Airport Terminal', l24:810,h24:1050, l25:830,h25:1125, l26:850,h26:1200},
+      {n:'Bus Terminal/Garage',   l24:380,h24:480,  l25:390,h25:495,  l26:400,h26:510},
+    ],
+    Government:[
+      {n:'Fire / EMS Station',     l24:590,h24:865,l25:595,h25:865,l26:600,h26:865},
+      {n:'Police – Local',         l24:540,h24:590,l25:545,h25:595,l26:550,h26:600},
+      {n:'Police – Regional HQ',   l24:470,h24:610,l25:485,h25:615,l26:500,h26:620},
+      {n:'Court House',            l24:505,h24:725,l25:523,h25:738,l26:540,h26:750},
+      {n:'Facilities Maintenance', l24:450,h24:550,l25:450,h25:550,l26:450,h26:550},
+      {n:'Penitentiary',           l24:550,h24:700,l25:563,h25:710,l26:575,h26:720},
+      {n:'Municipal Office',       l24:410,h24:530,l25:430,h25:530,l26:450,h26:530},
+      {n:'Library',                l24:440,h24:740,l25:448,h25:770,l26:455,h26:800},
+    ],
+    Recreation:[
+      {n:'Ice Arena',            l24:350,h24:475, l25:373,h25:493, l26:395,h26:510},
+      {n:'Community Aquatic',    l24:535,h24:930, l25:548,h25:930, l26:560,h26:930},
+      {n:'Multi-Use Rec Centre', l24:515,h24:915, l25:558,h25:995, l26:600,h26:1075},
+      {n:'Performing Arts',      l24:890,h24:1225,l25:890,h25:1238,l26:890,h26:1250},
+      {n:'Museum / Gallery',     l24:535,h24:880, l25:545,h25:1040,l26:555,h26:1200},
+    ],
+  },
+};
+
+const ESC = {
+  overall:    {yrs:['2020','2021','2022','2023','2024','2025'],low:[4.84,3.44,3.41,18.21,5.85,4.55],high:[4.65,3.84,4.08,20.41,3.21,5.93],avg:[4.67,3.63,3.78,19.44,4.10,5.43]},
+  warehouse:  {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[5.26,3.70,0.00,9.52,4.35,0.00,8.70],high:[5.00,3.57,0.00,27.59,5.41,7.69,8.06],avg:[5.13,3.64,0.00,18.56,4.88,3.85,8.38]},
+  concreteMF: {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[0.00,2.17,4.84,-1.79,5.26,-1.04,5.07],high:[15.00,31.91,1.54,23.64,8.57,20.00,17.95],avg:[7.50,17.04,3.19,10.93,6.92,9.48,11.51]},
+  woodframeMF:{yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[5.00,2.38,3.77,4.29,3.00,0.84,6.67],high:[10.00,13.95,5.45,16.67,15.53,4.30,0.00],avg:[7.50,8.17,4.61,10.48,9.27,2.57,3.34]},
+  office:     {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[11.63,0.00,2.08,18.37,1.72,1.69,11.11],high:[1.67,3.28,19.05,1.33,0.00,11.34,0.93],avg:[6.65,1.64,10.57,9.85,0.86,6.52,6.02]},
+  parking:    {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[4.35,12.50,3.70,-14.29,33.33,6.25,5.88],high:[0.00,11.11,15.00,8.70,16.00,5.26,5.00],avg:[2.18,11.81,9.35,-2.80,24.67,5.76,5.44]},
+  retail:     {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[4.17,0.00,4.00,53.85,2.50,2.44,5.71],high:[0.00,2.70,44.74,1.82,7.14,5.08,0.00],avg:[2.09,1.35,24.37,27.84,4.82,3.76,2.86]},
+  storage:    {yrs:['2019','2020','2021','2022','2023','2024','2025'],low:[5.26,5.00,9.52,0.00,4.35,3.57,3.45],high:[6.67,3.13,6.06,4.26,0.00,4.08,7.84],avg:[5.97,4.07,7.79,2.13,2.18,3.83,5.65]},
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────
+let curTab='residential', curFil='All', curView='bar';
+let MC=null, EC=null;
+
+function avg(l,h){return Math.round((l+h)/2)}
+function flatItems(tab){return Object.values(D[tab]).flat()}
+function filItems(tab,fil){return fil==='All'?flatItems(tab):(D[tab][fil]||[])}
+function tooltipStyle(){
+  return {
+    backgroundColor:'rgba(11,15,25,0.97)',
+    titleColor:'#F0F4FF',
+    bodyColor:'#8899BB',
+    borderColor:'#1f2d47',
+    borderWidth:1,
+    padding:12,
+    titleFont:{family:"'DM Mono',monospace",size:12},
+    bodyFont:{family:"'DM Sans',sans-serif",size:12},
+    cornerRadius:8,
+    displayColors:false,
+  };
+}
+
+// ─── BAR CHART ───────────────────────────────────────────────────────
+function drawBar(tab){
+  const items = filItems(tab, curFil);
+  const n = items.length;
+  const wrap = document.getElementById('mainWrap');
+  wrap.style.height = Math.max(260, n*60+80)+'px';
+  if(MC){MC.destroy();MC=null}
+  const canvas = document.getElementById('mainChart');
+  const ctx = canvas.getContext('2d');
+  MC = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: items.map(d=>d.n),
+      datasets:[
+        {label:'2024',data:items.map(d=>avg(d.l24,d.h24)),backgroundColor:'rgba(75,143,255,0.85)',borderWidth:0,borderRadius:3,borderSkipped:false,barPercentage:.65,categoryPercentage:.8},
+        {label:'2025',data:items.map(d=>avg(d.l25,d.h25)),backgroundColor:'rgba(245,166,35,0.85)',borderWidth:0,borderRadius:3,borderSkipped:false,barPercentage:.65,categoryPercentage:.8},
+        {label:'2026',data:items.map(d=>avg(d.l26,d.h26)),backgroundColor:'rgba(0,229,160,0.85)',borderWidth:0,borderRadius:3,borderSkipped:false,barPercentage:.65,categoryPercentage:.8},
+      ]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          ...tooltipStyle(),
+          callbacks:{
+            title:c=>c[0].label,
+            label:c=>{
+              const i=c.dataIndex, d=items[i], yr=c.datasetIndex;
+              const [l,h,a]= yr===0?[d.l24,d.h24,avg(d.l24,d.h24)]:yr===1?[d.l25,d.h25,avg(d.l25,d.h25)]:[d.l26,d.h26,avg(d.l26,d.h26)];
+              const yrlabel=['2024','2025','2026'][yr];
+              const chg = yr===0?'—':yr===1?(((avg(d.l25,d.h25)-avg(d.l24,d.h24))/avg(d.l24,d.h24))*100).toFixed(1):(((avg(d.l26,d.h26)-avg(d.l24,d.h24))/avg(d.l24,d.h24))*100).toFixed(1);
+              const arrow = yr===0?'':Number(chg)>0?` ↑ +${chg}% vs 2024`:` → ${chg}% vs 2024`;
+              return `${yrlabel}: $${l}–$${h}/sqft  (avg $${a})${arrow}`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(31,45,71,.5)'},ticks:{color:'#8899BB',font:{size:11},callback:v=>'$'+v},border:{display:false}},
+        y:{grid:{display:false},ticks:{color:'#8899BB',font:{size:11},crossAlign:'far'},border:{display:false}},
+      }
+    }
+  });
+}
+
+// ─── LINE (EVOLUTION) CHART ──────────────────────────────────────────
+function drawLine(tab){
+  const items = filItems(tab, curFil);
+  const wrap = document.getElementById('mainWrap');
+  wrap.style.height = '420px';
+  if(MC){MC.destroy();MC=null}
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const palette=['#4B8FFF','#00E5A0','#F5A623','#E05CE2','#F5373C','#4EE2F5','#FFE566','#A78BFA','#FC8181','#68D391','#7EC8E3','#FBD38D'];
+  const datasets = items.map((d,i)=>({
+    label:d.n,
+    data:[avg(d.l24,d.h24),avg(d.l25,d.h25),avg(d.l26,d.h26)],
+    borderColor:palette[i%palette.length],
+    backgroundColor:'transparent',
+    borderWidth:2,
+    pointBackgroundColor:palette[i%palette.length],
+    pointRadius:5,
+    pointHoverRadius:7,
+    tension:.3,
+  }));
+  MC = new Chart(ctx,{
+    type:'line',
+    data:{labels:['2024','2025','2026'],datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#8899BB',font:{size:11},padding:12,usePointStyle:true,pointStyleWidth:8}},
+        tooltip:{
+          ...tooltipStyle(),
+          callbacks:{
+            label:c=>{
+              const d=items[c.dataIndex<items.length?c.datasetIndex:0];
+              return ` ${c.dataset.label}: $${c.parsed.y}/sqft`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(31,45,71,.5)'},ticks:{color:'#8899BB',font:{size:12,weight:'500'}},border:{display:false}},
+        y:{grid:{color:'rgba(31,45,71,.5)'},ticks:{color:'#8899BB',font:{size:11},callback:v=>'$'+v},border:{display:false}},
+      }
+    }
+  });
+}
+
+// ─── ESCALATION CHART ────────────────────────────────────────────────
+function drawEsc(){
+  const key=document.getElementById('escSel').value;
+  const d=ESC[key];
+  if(EC){EC.destroy();EC=null}
+  const ctx=document.getElementById('escChart').getContext('2d');
+  EC=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:d.yrs,
+      datasets:[
+        {label:'Low Δ%', data:d.low, borderColor:'#4B8FFF',backgroundColor:'rgba(75,143,255,0.06)',fill:true,pointBackgroundColor:'#4B8FFF',pointRadius:4,tension:.3,borderWidth:2},
+        {label:'High Δ%',data:d.high,borderColor:'#F5373C',backgroundColor:'rgba(245,55,60,0.06)',fill:true,pointBackgroundColor:'#F5373C',pointRadius:4,tension:.3,borderWidth:2},
+        {label:'Avg Δ%', data:d.avg, borderColor:'#00E5A0',backgroundColor:'rgba(0,229,160,0.06)',fill:true,pointBackgroundColor:'#00E5A0',pointRadius:5,tension:.3,borderWidth:2.5},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          ...tooltipStyle(),
+          callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(2)}%`}
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(31,45,71,.5)'},ticks:{color:'#8899BB',font:{size:11}},border:{display:false}},
+        y:{grid:{color:'rgba(31,45,71,.5)'},ticks:{color:'#8899BB',font:{size:11},callback:v=>v+'%'},border:{display:false}},
+      }
+    }
+  });
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────
+function buildFils(tab){
+  const nav=document.getElementById('filRow');
+  nav.innerHTML='';
+  ['All',...Object.keys(D[tab])].forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='fil'+(cat===curFil?' on':'');
+    b.textContent=cat;
+    b.onclick=()=>{curFil=cat;document.querySelectorAll('.fil').forEach(x=>x.classList.remove('on'));b.classList.add('on');redraw()};
+    nav.appendChild(b);
+  });
+}
+
+function setView(v,btn){
+  curView=v;
+  document.querySelectorAll('.vbtn').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');
+  redraw();
+}
+
+function redraw(){
+  if(curView==='bar') drawBar(curTab);
+  else drawLine(curTab);
+}
+
+function doTab(tab,btn){
+  curTab=tab; curFil='All';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const esc=document.getElementById('escWrap');
+  const mw=document.getElementById('mainWrap').parentElement;
+  const vt=document.getElementById('viewToggle');
+  const lg=document.getElementById('lgd');
+  const fn=document.getElementById('fnote');
+  if(tab==='escalation'){
+    mw.style.display='none';vt.style.display='none';lg.style.display='none';
+    document.getElementById('filRow').style.display='none';
+    esc.style.display='block';fn.style.display='none';
+    drawEsc();
+  } else {
+    mw.style.display='block';vt.style.display='flex';lg.style.display='flex';
+    document.getElementById('filRow').style.display='flex';
+    esc.style.display='none';fn.style.display='block';
+    buildFils(tab); redraw();
+  }
+}
+
+// init
+buildFils('residential');
+drawBar('residential');
+</script>
+</body>
+</html>
